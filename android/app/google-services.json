@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "87653094798",
+    "firebase_url": "https://fir-ferplay.firebaseio.com",
+    "project_id": "firebase-ferplay",
+    "storage_bucket": "firebase-ferplay.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:87653094798:android:92783d37de0f6c26",
+        "android_client_info": {
+          "package_name": "co.hobbygo.ferplay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "87653094798-736g0mp2rug7pcerd119sqfaee0ktcqh.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "87653094798-rco6llqrjulttvt4mor1sjmuboh3q2jk.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "87653094798-jpi2rt0bva5i53b72fdv0agqidsmjec1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "co.hobbygo.ferplay",
+            "certificate_hash": "7c3fcae023b821a150598ea0f6a1d977e5a78549"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8R1HZYKdbGxORpC4ugULCveyYe80nZPI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 2,
+          "analytics_property": {
+            "tracking_id": "UA-114995252-1"
+          }
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "87653094798-736g0mp2rug7pcerd119sqfaee0ktcqh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
