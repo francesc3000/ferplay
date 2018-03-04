@@ -6,6 +6,8 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:io';
 
+import 'package:ferplay/Dashboard.dart';
+import 'package:ferplay/Strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -31,9 +33,7 @@ final ThemeData kDefaultTheme = new ThemeData(
 final googleSignIn = new GoogleSignIn();
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
-final reference = FirebaseDatabase.instance.reference().child('messages');
-
-const String _name = "Your Name";
+final evento = FirebaseDatabase.instance.reference().child(Strings.eventoBD);
 
 void main() {
   runApp(new FerPlay());
@@ -41,15 +41,14 @@ void main() {
 
 Future<Null> _ensureLoggedIn() async {
   GoogleSignInAccount user = googleSignIn.currentUser;
-  if (user == null)
-    user = await googleSignIn.signInSilently();
+  if (user == null) user = await googleSignIn.signInSilently();
   if (user == null) {
     user = await googleSignIn.signIn();
     analytics.logLogin();
   }
   if (await auth.currentUser() == null) {
     GoogleSignInAuthentication credentials =
-    await googleSignIn.currentUser.authentication;
+        await googleSignIn.currentUser.authentication;
     await auth.signInWithGoogle(
       idToken: credentials.idToken,
       accessToken: credentials.accessToken,
@@ -61,28 +60,98 @@ class FerPlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: "Friendlychat",
+      title: Strings.projectTitle,
       theme: defaultTargetPlatform == TargetPlatform.iOS
           ? kIOSTheme
           : kDefaultTheme,
-      home: new HomeScreen(),
+      home: new HomeScreen(title: Strings.projectTitle),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget{
-  @override
-  State createState() => new HomeScreenState();
+class HomeScreen extends StatefulWidget {
+  HomeScreen({Key key, this.title}) : super(key: key);
 
+  final String title;
+
+  @override
+  _HomeScreenState createState() => new _HomeScreenState();
 }
 
-class HomeScreenState extends State<ChatScreen>{
+class _HomeScreenState extends State<HomeScreen> {
+  List widgets = [];
+  /*
+  @override
+  void initState() {
+    super.initState();
+    for (int i = 0; i < 100; i++) {
+      widgets.add(getRow(i));
+    }
+  }
+  */
+
   @override
   Widget build(BuildContext context) {
-    return 
+    return new Scaffold(
+        appBar: new AppBar(
+          title: new Text(Strings.projectTitle),
+          elevation:
+              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
+        ),
+        drawer: new Drawer(
+            child: new ListView(
+          children: <Widget>[
+            new DrawerHeader(
+                child: new IconButton(
+                    icon: new Icon(Icons.account_circle),
+                    onPressed: () async {
+                      await _ensureLoggedIn();
+                      if(googleSignIn.currentUser!=null){
+                        Navigator.of(context).push(
+                            new MaterialPageRoute<Null>(
+                                builder: (BuildContext context) => new DashBoard()));
+                      }
+                    })),
+            new ListTile(
+              title: new Text(Strings.firstMenu),
+              onTap: () {},
+            ),/*
+            new ListTile(
+              title: new Text('Second Menu Item'),
+              onTap: () {},
+            ),*/
+            new Divider(),
+            new ListTile(
+              title: new Text(Strings.about),
+              onTap: () {},
+            ),
+          ],
+        )),
+        body: new Column(children: <Widget>[
+          new Flexible(
+            child: new FirebaseAnimatedList(
+              query: evento,
+              sort: (a, b) => b.key.compareTo(a.key),
+              padding: new EdgeInsets.all(8.0),
+              reverse: true,
+              itemBuilder:
+                  (_, DataSnapshot snapshot, Animation<double> animation) {
+                return new ChatMessage(
+                    snapshot: snapshot, animation: animation);
+              },
+            ),
+          ) /*,
+          new Divider(height: 1.0),
+          new Container(
+            decoration:
+            new BoxDecoration(color: Theme.of(context).cardColor),
+            child: _buildTextComposer(),
+          ),*/
+        ]));
   }
-
 }
+
+
 
 //-----------------------------------------------------------//
 @override
@@ -93,8 +162,7 @@ class ChatMessage extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return new SizeTransition(
-      sizeFactor: new CurvedAnimation(
-          parent: animation, curve: Curves.easeOut),
+      sizeFactor: new CurvedAnimation(parent: animation, curve: Curves.easeOut),
       axisAlignment: 0.0,
       child: new Container(
         margin: const EdgeInsets.symmetric(vertical: 10.0),
@@ -103,23 +171,24 @@ class ChatMessage extends StatelessWidget {
           children: <Widget>[
             new Container(
               margin: const EdgeInsets.only(right: 16.0),
-              child: new CircleAvatar(backgroundImage: new NetworkImage(snapshot.value['senderPhotoUrl'])),
+              child: new CircleAvatar(
+                  backgroundImage:
+                      new NetworkImage(snapshot.value['senderPhotoUrl'])),
             ),
             new Expanded(
               child: new Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  new Text(
-                      snapshot.value['senderName'],
+                  new Text(snapshot.value['senderName'],
                       style: Theme.of(context).textTheme.subhead),
                   new Container(
                     margin: const EdgeInsets.only(top: 5.0),
-                    child: snapshot.value['imageUrl'] != null ?
-                    new Image.network(
-                      snapshot.value['imageUrl'],
-                      width: 250.0,
-                    ) :
-                    new Text(snapshot.value['text']),
+                    child: snapshot.value['imageUrl'] != null
+                        ? new Image.network(
+                            snapshot.value['imageUrl'],
+                            width: 250.0,
+                          )
+                        : new Text(snapshot.value['text']),
                   ),
                 ],
               ),
@@ -145,27 +214,26 @@ class ChatScreenState extends State<ChatScreen> {
     return new Scaffold(
         appBar: new AppBar(
           title: new Text("Friendlychat"),
-          elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
+          elevation:
+              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
         ),
         body: new Column(children: <Widget>[
           new Flexible(
             child: new FirebaseAnimatedList(
-              query: reference,
+              query: evento,
               sort: (a, b) => b.key.compareTo(a.key),
               padding: new EdgeInsets.all(8.0),
               reverse: true,
-              itemBuilder: (_, DataSnapshot snapshot, Animation<double> animation) {
+              itemBuilder:
+                  (_, DataSnapshot snapshot, Animation<double> animation) {
                 return new ChatMessage(
-                    snapshot: snapshot,
-                    animation: animation
-                );
+                    snapshot: snapshot, animation: animation);
               },
             ),
           ),
           new Divider(height: 1.0),
           new Container(
-            decoration:
-            new BoxDecoration(color: Theme.of(context).cardColor),
+            decoration: new BoxDecoration(color: Theme.of(context).cardColor),
             child: _buildTextComposer(),
           ),
         ]));
@@ -185,13 +253,13 @@ class ChatScreenState extends State<ChatScreen> {
                     await _ensureLoggedIn();
                     File imageFile = await ImagePicker.pickImage();
                     int random = new Random().nextInt(100000);
-                    StorageReference ref =
-                    FirebaseStorage.instance.ref().child("image_$random.jpg");
+                    StorageReference ref = FirebaseStorage.instance
+                        .ref()
+                        .child("image_$random.jpg");
                     StorageUploadTask uploadTask = ref.put(imageFile);
                     Uri downloadUrl = (await uploadTask.future).downloadUrl;
                     _sendMessage(imageUrl: downloadUrl.toString());
-                  }
-              ),
+                  }),
             ),
             new Flexible(
               child: new TextField(
@@ -203,29 +271,29 @@ class ChatScreenState extends State<ChatScreen> {
                 },
                 onSubmitted: _handleSubmitted,
                 decoration:
-                new InputDecoration.collapsed(hintText: "Send a message"),
+                    new InputDecoration.collapsed(hintText: "Send a message"),
               ),
             ),
             new Container(
                 margin: new EdgeInsets.symmetric(horizontal: 4.0),
                 child: Theme.of(context).platform == TargetPlatform.iOS
                     ? new CupertinoButton(
-                  child: new Text("Send"),
-                  onPressed: _isComposing
-                      ? () => _handleSubmitted(_textController.text)
-                      : null,
-                )
+                        child: new Text("Send"),
+                        onPressed: _isComposing
+                            ? () => _handleSubmitted(_textController.text)
+                            : null,
+                      )
                     : new IconButton(
-                  icon: new Icon(Icons.send),
-                  onPressed: _isComposing
-                      ? () => _handleSubmitted(_textController.text)
-                      : null,
-                )),
+                        icon: new Icon(Icons.send),
+                        onPressed: _isComposing
+                            ? () => _handleSubmitted(_textController.text)
+                            : null,
+                      )),
           ]),
           decoration: Theme.of(context).platform == TargetPlatform.iOS
               ? new BoxDecoration(
-              border:
-              new Border(top: new BorderSide(color: Colors.grey[200])))
+                  border:
+                      new Border(top: new BorderSide(color: Colors.grey[200])))
               : null),
     );
   }
@@ -239,8 +307,8 @@ class ChatScreenState extends State<ChatScreen> {
     _sendMessage(text: text);
   }
 
-  void _sendMessage({ String text, String imageUrl }) {
-    reference.push().set({
+  void _sendMessage({String text, String imageUrl}) {
+    evento.push().set({
       'text': text,
       'imageUrl': imageUrl,
       'senderName': googleSignIn.currentUser.displayName,
@@ -248,5 +316,4 @@ class ChatScreenState extends State<ChatScreen> {
     });
     analytics.logEvent(name: 'send_message');
   }
-
 }
