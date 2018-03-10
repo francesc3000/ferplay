@@ -1,12 +1,12 @@
-import 'package:ferplay/Evento.dart';
-import 'package:ferplay/Strings.dart';
-import 'package:ferplay/main.dart';
+
+import 'package:ferplay/config/Strings.dart';
+import 'package:ferplay/component/HomeComponent.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 
-class DashBoard extends StatelessWidget{
+class DashBoardComponent extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -40,8 +40,11 @@ class DashBoard extends StatelessWidget{
             tooltip: Strings.add, // used by assistive technologies
             child: new Icon(Icons.add),
             onPressed: () {
+              /*
               Navigator.of(context).push(new MaterialPageRoute<Null>(
                   builder: (BuildContext context) => new Evento()));
+                  */
+              Navigator.of(context).pushNamed('/evento');
             },
           ),
         ),
@@ -58,9 +61,10 @@ class _Choice {
 
 List<_Choice> choices = <_Choice>[
   new _Choice(title: Strings.myEnrolls, icon: Icons.group_work),
-  new _Choice(title: Strings.myEventos, icon: Icons.event),
+  new _Choice(title: Strings.myDrafts, icon: Icons.event),
   new _Choice(title: Strings.myFavorites, icon: Icons.star),
   new _Choice(title: Strings.myGroups, icon: Icons.group),
+  new _Choice(title: Strings.friends, icon: Icons.contacts),
 ];
 
 class ChoiceCard extends StatelessWidget {

@@ -9,10 +9,11 @@ class Strings{
 
   //DashBoard
   static String dashBoardTitle = "Dashboard";
-  static String myEventos = "Mis Eventos";
+  static String myDrafts = "Borrador";
   static String myFavorites = "Favoritos";
-  static String myGroups = "Mis Grupos";
-  static String myEnrolls = "Mis FerPlays";
+  static String myGroups = "Grupos";
+  static String myEnrolls = "FerPlays";
+  static String friends = "Amigos";
   static String add = "Nuevo";
 
   //Evento
