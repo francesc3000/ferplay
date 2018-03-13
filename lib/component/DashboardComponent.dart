@@ -6,7 +6,43 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 
-class DashBoardComponent extends StatelessWidget{
+class DashBoardComponent extends StatefulWidget {
+  DashBoardComponent({Key key, this.drawerList}) : super(key: key);
+
+  final Widget drawerList;
+
+  @override
+  _DashBoardComponent createState() => new _DashBoardComponent(drawerList);
+
+}
+
+class _DashBoardComponent extends State<DashBoardComponent> with SingleTickerProviderStateMixin{
+
+  _DashBoardComponent(this.drawerList);
+
+  final Widget drawerList;
+
+  TabController _tabController = null;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = new TabController(vsync: this, length: choices.length);
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    setState(() {
+      //Hacemos aparecer el botón flotante
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -19,6 +55,7 @@ class DashBoardComponent extends StatelessWidget{
           appBar: new AppBar(
             title: new Text(Strings.dashBoardTitle),
             bottom: new TabBar(
+              controller: _tabController,
               isScrollable: true,
               tabs: choices.map((_Choice choice) {
                 return new Tab(
@@ -28,28 +65,47 @@ class DashBoardComponent extends StatelessWidget{
               }).toList(),
             ),
           ),
+          drawer: drawerList,
           body: new TabBarView(
-                children: choices.map((_Choice choice) {
-                  return new Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: new ChoiceCard(choice: choice),
-                  );
-                }).toList(),
-              ),
-          floatingActionButton: new FloatingActionButton(
-            tooltip: Strings.add, // used by assistive technologies
-            child: new Icon(Icons.add),
-            onPressed: () {
-              /*
-              Navigator.of(context).push(new MaterialPageRoute<Null>(
-                  builder: (BuildContext context) => new Evento()));
-                  */
-              Navigator.of(context).pushNamed('/evento');
-            },
+            controller: _tabController,
+            children: choices.map((_Choice choice) {
+              return new Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: new ChoiceCard(choice: choice),
+              );
+            }).toList(),
           ),
+          floatingActionButton: new FloatingButton(_tabController),
         ),
       ),
     );
+  }
+}
+
+class FloatingButton extends StatelessWidget{
+  FloatingButton(this.tabController);
+
+  TabController tabController;
+
+  @override
+  Widget build(BuildContext context) {
+    if(tabController.index==1||tabController.index==3) {
+      return new FloatingActionButton(
+        tooltip: Strings.add, // used by assistive technologies
+        child: new Icon(Icons.add),
+        onPressed: () {
+          switch(tabController.index){
+            case 1:
+              Navigator.of(context).pushNamed('/evento');
+              break;
+            case 3:
+              Navigator.of(context).pushNamed('/group');
+              break;
+          }
+        },
+      );
+    }else
+      return new Container();
   }
 }
 

@@ -3,9 +3,10 @@ import 'dart:math';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:ferplay/component/DashboardComponent.dart';
 import 'package:ferplay/config/Strings.dart';
 import 'package:ferplay/component/EventoComponent.dart';
-import 'package:ferplay/component/LogInComponent.dart';
+import 'package:ferplay/component/LogInFacebookComponent.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -32,8 +33,11 @@ final googleSignIn = new GoogleSignIn();
 final analytics = new FirebaseAnalytics();
 final auth = FirebaseAuth.instance;
 final eventoBD = FirebaseDatabase.instance.reference().child(Strings.eventoBD);
+final _drawerList = new DrawerList();
 
 Future<Null> _ensureLoggedIn() async {
+  print("Dentro de ensure loggin");
+
   GoogleSignInAccount user = googleSignIn.currentUser;
   if (user == null) user = await googleSignIn.signInSilently();
   if (user == null) {
@@ -43,6 +47,7 @@ Future<Null> _ensureLoggedIn() async {
   if (await auth.currentUser() == null) {
     GoogleSignInAuthentication credentials =
         await googleSignIn.currentUser.authentication;
+
     await auth.signInWithGoogle(
       idToken: credentials.idToken,
       accessToken: credentials.accessToken,
@@ -61,7 +66,8 @@ class HomeComponent extends StatelessWidget {
       home: new HomeScreen(title: Strings.projectTitle),
       routes: <String, WidgetBuilder>{
         '/evento': (BuildContext context) => new EventoComponent(),
-        '/login': (BuildContext context) => new LogInComponent(),
+        '/login': (BuildContext context) => new LogInFacebookComponent(),
+        '/dashboard': (BuildContext context) => new DashBoardComponent(drawerList: _drawerList,),
         //'/screen2' : (BuildContext context) => new Screen2()
       },
     );
@@ -91,49 +97,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    String _logInImage = "https://firebasestorage.googleapis.com/v0/b/firebase-ferplay.appspot.com/o/NotLoginPNG.png?alt=media&token=44235314-5c0b-4023-86f5-1e790b3b9076";
-
     return new Scaffold(
         appBar: new AppBar(
           title: new Text(Strings.projectTitle),
           elevation:
               Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
         ),
-        drawer: new Drawer(
-            child:
-                new ListView(
-          children: <Widget>[
-            new DrawerHeader(
-                child: new Column(children: <Widget>[
-              new GestureDetector(
-                  onTap: () {
-                    print("Container clicked");
-                  },
-                  child: new Column( children: <Widget>[
-                    new CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: new NetworkImage( _logInImage )
-                  ),
-                    new Text("Registrarse"),
-                ]
-              ),)
-            ])),
-            new ListTile(
-              title: new Text(Strings.firstMenu),
-              onTap: () {},
-            ),
-            /*
-            new ListTile(
-              title: new Text('Second Menu Item'),
-              onTap: () {},
-            ),*/
-            new Divider(),
-            new ListTile(
-              title: new Text(Strings.about),
-              onTap: () {},
-            ),
-          ],
-        )),
+        drawer: _drawerList, //new DrawerDemo(),
         body: new Column(children: <Widget>[
           new Flexible(
             child: new FirebaseAnimatedList(
@@ -154,6 +124,93 @@ class _HomeScreenState extends State<HomeScreen> {
             child: _buildTextComposer(),
           ),*/
         ]));
+  }
+}
+
+class DrawerList extends StatefulWidget {
+  @override
+  _DrawerList createState() => new _DrawerList();
+}
+
+class _DrawerList extends State<DrawerList> {
+  @override
+  Widget build(BuildContext context) {
+    return new Drawer(
+        child: new ListView(
+      children: <Widget>[
+        new _DrawerHeader(),
+        new ListTile(
+          title: new Text(Strings.firstMenu),
+          onTap: () {},
+        ),
+        /*
+            new ListTile(
+              title: new Text('Second Menu Item'),
+              onTap: () {},
+            ),*/
+        new Divider(),
+        new ListTile(
+          title: new Text(Strings.about),
+          onTap: () {},
+        ),
+      ],
+    ));
+  }
+}
+
+class _DrawerHeader extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    if (googleSignIn.currentUser != null) {
+      return new DrawerHeader(
+
+        child: new GestureDetector(
+          onTap: () async {
+              Navigator.of(context).pushNamed('/dashboard');
+          },
+          child: new Column(children: <Widget>[
+            new CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: new NetworkImage(googleSignIn.currentUser.photoUrl)),
+            new Text(googleSignIn.currentUser.displayName)
+          ]),
+        )
+      );
+    /*
+          child: new GestureDetector(
+            onTap: () async {
+              Navigator.of(context).pushNamed('/dashboard');
+            },
+            child:         new UserAccountsDrawerHeader(
+              decoration: new BoxDecoration(
+                color: Colors.white
+              ),
+              accountName: new Text(googleSignIn.currentUser.displayName),
+              accountEmail: new Text(googleSignIn.currentUser.email),
+              currentAccountPicture: new CircleAvatar(
+                  //backgroundColor: Colors.black,
+                  backgroundImage:
+                  new NetworkImage(googleSignIn.currentUser.photoUrl)),
+              onDetailsPressed: (){
+
+          },
+            ),
+          )
+      );
+      */
+    } else {
+      return new DrawerHeader(
+          child: new Column(children: <Widget>[
+        new IconButton(
+            icon: new Icon(Icons.account_circle),
+            onPressed: () async {
+              await _ensureLoggedIn();
+              if (googleSignIn.currentUser != null)
+                Navigator.of(context).pushNamed('/dashboard');
+            }),
+        new Text("Registrarse")
+      ]));
+    }
   }
 }
 

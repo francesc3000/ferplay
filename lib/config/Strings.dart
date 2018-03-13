@@ -22,5 +22,7 @@ class Strings{
   //firebase
   static String eventoBD = "eventos";
 
+  static String LogInScreen = "Registrarse";
+
 
 }
