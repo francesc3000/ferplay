@@ -1,23 +1,33 @@
 import 'dart:async';
 
+import 'package:ferplay/component/ComponentsInterfaces.dart';
 import 'package:ferplay/config/Strings.dart';
 import 'package:ferplay/component/HomeComponent.dart';
-import 'package:ferplay/model/Evento.dart';
+import 'package:ferplay/presenter/Presenters.dart';
+import 'package:ferplay/presenter/PresentersImpl.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
 
+EventoPresenter _eventoPresenter;
 
-class EventoComponent extends StatefulWidget {
+class EventoComponent extends StatefulWidget implements EventoView{
+  EventoComponent(){
+    _eventoPresenter = new EventoPresenterImpl(this);
+  }
+
   @override
   _EventoComponent createState() => new _EventoComponent();
+
 }
 
 class _EventoComponent extends State<EventoComponent> {
   final TextEditingController _controllerName = new TextEditingController();
   final TextEditingController _controllerDescription = new TextEditingController();
-  Evento _evento = new Evento();
+  String _hobby;
+  DateTime _fromDate = new DateTime.now();
+  TimeOfDay _fromTime = new TimeOfDay.now();
 
   @override
   Widget build(BuildContext context) {
@@ -28,15 +38,30 @@ class _EventoComponent extends State<EventoComponent> {
       home: new Scaffold(
           appBar: new AppBar(
             title: new Text(Strings.EventoTitle),
+            actions: [
+              new FlatButton(
+                  onPressed: () {
+                    _eventoPresenter.save(_hobby,_controllerName.text,_controllerDescription.text,
+                    _fromDate,_fromTime);
+
+                    Navigator.of(context).pop();
+                  },
+                  child: new Text('GUARDAR',
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .subhead
+                          .copyWith(color: Colors.white))),
+            ],
           ),
           body: new Form(
               child: new Column(children: <Widget>[
             new DropdownButton<String>(
-                value: _evento.hobby,
+                value: _hobby,
                 hint: const Text("FerPlay"),
                 onChanged: (String newValue) {
                   setState(() {
-                    _evento.hobby = newValue;
+                    _hobby = newValue;
                   });
                 },
                 items:
@@ -64,28 +89,19 @@ class _EventoComponent extends State<EventoComponent> {
             ),
             new _DateTimePicker(
               labelText: "Fecha",
-              selectedDate: _evento.fromDate,
-              selectedTime: _evento.fromTime,
+              selectedDate: _fromDate,
+              selectedTime: _fromTime,
               selectDate: (DateTime date) {
                 setState(() {
-                  _evento.fromDate = date;
+                  _fromDate = date;
                 });
               },
               selectTime: (TimeOfDay time) {
                 setState(() {
-                  _evento.fromTime = time;
+                  _fromTime = time;
                 });
               },
             ),
-            new RaisedButton(
-              child: new Text("Guardar"),
-              onPressed: () {
-                _evento.name = _controllerName.text;
-                _evento.description = _controllerDescription.text;
-
-                _evento.save();
-              },
-            )
           ]))),
     );
   }

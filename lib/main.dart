@@ -3,10 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:ferplay/component/HomeComponent.dart';
+import 'package:ferplay/model/Injector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 void main() {
+  Injector.configure(Flavor.DEV);
   runApp(new HomeComponent());
 }
 

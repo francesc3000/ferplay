@@ -3,10 +3,16 @@ import 'dart:math';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:ferplay/component/ComponentsInterfaces.dart';
 import 'package:ferplay/component/DashboardComponent.dart';
+import 'package:ferplay/component/EventoAnimatedList.dart';
 import 'package:ferplay/config/Strings.dart';
 import 'package:ferplay/component/EventoComponent.dart';
 import 'package:ferplay/component/LogInFacebookComponent.dart';
+import 'package:ferplay/model/Injector.dart';
+import 'package:ferplay/model/User.dart';
+import 'package:ferplay/presenter/Presenters.dart';
+import 'package:ferplay/presenter/PresentersImpl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -29,33 +35,11 @@ final ThemeData kDefaultTheme = new ThemeData(
   accentColor: Colors.orangeAccent[400],
 );
 
-final googleSignIn = new GoogleSignIn();
-final analytics = new FirebaseAnalytics();
-final auth = FirebaseAuth.instance;
-final eventoBD = FirebaseDatabase.instance.reference().child(Strings.eventoBD);
 final _drawerList = new DrawerList();
+HomePresenter _homePresenter;
 
-Future<Null> _ensureLoggedIn() async {
-  print("Dentro de ensure loggin");
+class HomeComponent extends StatelessWidget{
 
-  GoogleSignInAccount user = googleSignIn.currentUser;
-  if (user == null) user = await googleSignIn.signInSilently();
-  if (user == null) {
-    user = await googleSignIn.signIn();
-    analytics.logLogin();
-  }
-  if (await auth.currentUser() == null) {
-    GoogleSignInAuthentication credentials =
-        await googleSignIn.currentUser.authentication;
-
-    await auth.signInWithGoogle(
-      idToken: credentials.idToken,
-      accessToken: credentials.accessToken,
-    );
-  }
-}
-
-class HomeComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
@@ -65,8 +49,6 @@ class HomeComponent extends StatelessWidget {
           : kDefaultTheme,
       home: new HomeScreen(title: Strings.projectTitle),
       routes: <String, WidgetBuilder>{
-        '/evento': (BuildContext context) => new EventoComponent(),
-        '/login': (BuildContext context) => new LogInFacebookComponent(),
         '/dashboard': (BuildContext context) => new DashBoardComponent(drawerList: _drawerList,),
         //'/screen2' : (BuildContext context) => new Screen2()
       },
@@ -83,47 +65,55 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => new _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  List widgets = [];
-  /*
+class _HomeScreenState extends State<HomeScreen> implements HomeView{
+  bool _IsSignInSilently=false;
+
+  _HomeScreenState() {
+    _homePresenter = new HomePresenterImpl(this);
+  }
+
   @override
   void initState() {
     super.initState();
-    for (int i = 0; i < 100; i++) {
-      widgets.add(getRow(i));
-    }
+
+    _IsSignInSilently = true;
+    _homePresenter.onInitLoggedIn();
   }
-  */
 
   @override
   Widget build(BuildContext context) {
-    return new Scaffold(
-        appBar: new AppBar(
-          title: new Text(Strings.projectTitle),
-          elevation:
-              Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
-        ),
-        drawer: _drawerList, //new DrawerDemo(),
-        body: new Column(children: <Widget>[
-          new Flexible(
-            child: new FirebaseAnimatedList(
-              query: eventoBD,
-              sort: (a, b) => b.key.compareTo(a.key),
-              padding: new EdgeInsets.all(8.0),
-              //reverse: true,
-              itemBuilder:
-                  (_, DataSnapshot snapshot, Animation<double> animation) {
-                return new EventoRow(snapshot: snapshot, animation: animation);
-              },
-            ),
-          ) /*,
-          new Divider(height: 1.0),
-          new Container(
-            decoration:
-            new BoxDecoration(color: Theme.of(context).cardColor),
-            child: _buildTextComposer(),
-          ),*/
-        ]));
+    Widget widget;
+
+    if(_IsSignInSilently) {
+      widget = new Center(
+          child: new Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+              child: new CircularProgressIndicator()
+          )
+      );
+    }else {
+      widget = new Scaffold(
+          appBar: new AppBar(
+            title: new Text(Strings.projectTitle),
+            elevation:
+            Theme
+                .of(context)
+                .platform == TargetPlatform.iOS ? 0.0 : 4.0,
+          ),
+          drawer: _drawerList, //new DrawerDemo(),
+          body: /*new EventoAnimatedList(query: _homePresenter.getHomeListQuery()
+              , presenter: _homePresenter));*/
+    new EventoAnimatedList(presenter: _homePresenter));
+    }
+
+    return widget;
+  }
+
+  @override
+  onInitLoggedInComplete() {
+    setState(() {
+      _IsSignInSilently = false;
+    });
   }
 }
 
@@ -161,18 +151,21 @@ class _DrawerList extends State<DrawerList> {
 class _DrawerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    if (googleSignIn.currentUser != null) {
+    if (_homePresenter.getCurrentUser() != null) {
       return new DrawerHeader(
 
         child: new GestureDetector(
-          onTap: () async {
-              Navigator.of(context).pushNamed('/dashboard');
+          onTap: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pushNamed('/dashboard');
           },
           child: new Column(children: <Widget>[
             new CircleAvatar(
                 backgroundColor: Colors.white,
-                backgroundImage: new NetworkImage(googleSignIn.currentUser.photoUrl)),
-            new Text(googleSignIn.currentUser.displayName)
+                backgroundImage: new NetworkImage(_homePresenter.getCurrentUser().photoUrl)),
+            new Text(_homePresenter.getCurrentUser().fullname),
+            new FlatButton(onPressed: (){_homePresenter.signOut();},
+                child: new Text("Salir"))
           ]),
         )
       );
@@ -204,8 +197,9 @@ class _DrawerHeader extends StatelessWidget {
         new IconButton(
             icon: new Icon(Icons.account_circle),
             onPressed: () async {
-              await _ensureLoggedIn();
-              if (googleSignIn.currentUser != null)
+              await _homePresenter.ensureLoggedIn();
+              if (_homePresenter.getCurrentUser() != null)
+                Navigator.of(context).pop();
                 Navigator.of(context).pushNamed('/dashboard');
             }),
         new Text("Registrarse")
@@ -214,25 +208,8 @@ class _DrawerHeader extends StatelessWidget {
   }
 }
 
-class EventoRow extends StatelessWidget {
-  EventoRow({this.snapshot, this.animation});
-  final DataSnapshot snapshot;
-  final Animation animation;
-
-  @override
-  Widget build(BuildContext context) {
-    return new Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          new Container(
-            //margin: const EdgeInsets.only(right: 16.0),
-            child: new Text(snapshot.value['name']),
-          ),
-        ]);
-  }
-}
-
 //-----------------------------------------------------------//
+/*
 @override
 class ChatMessage extends StatelessWidget {
   ChatMessage({this.snapshot, this.animation});
@@ -396,3 +373,4 @@ class ChatScreenState extends State<ChatScreen> {
     analytics.logEvent(name: 'send_message');
   }
 }
+*/
