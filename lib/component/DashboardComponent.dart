@@ -117,13 +117,13 @@ class FloatingButton extends StatelessWidget{
 
   @override
   Widget build(BuildContext context) {
-    if(tabController.index==1||tabController.index==3) {
+    if(tabController.index==0||tabController.index==2) {
       return new FloatingActionButton(
         tooltip: Strings.add, // used by assistive technologies
         child: new Icon(Icons.add),
         onPressed: () {
           switch(tabController.index){
-            case 1:
+            case 0:
               //Navigator.of(context).pushNamed('/evento');
               Navigator.of(context).push(new MaterialPageRoute<Null>(
                   builder: (BuildContext context) {
@@ -132,7 +132,7 @@ class FloatingButton extends StatelessWidget{
                   fullscreenDialog: true
               ));
               break;
-            case 3:
+            case 2:
               Navigator.of(context).pushNamed('/group');
               break;
           }
@@ -151,7 +151,6 @@ class _Choice {
 
 List<_Choice> choices = <_Choice>[
   new _Choice(title: Strings.myEnrolls, icon: Icons.group_work),
-  new _Choice(title: Strings.myDrafts, icon: Icons.event),
   new _Choice(title: Strings.myFavorites, icon: Icons.favorite),
   new _Choice(title: Strings.myGroups, icon: Icons.group),
   new _Choice(title: Strings.friends, icon: Icons.contacts),

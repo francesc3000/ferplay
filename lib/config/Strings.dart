@@ -9,7 +9,6 @@ class Strings{
 
   //DashBoard
   static String dashBoardTitle = "Dashboard";
-  static String myDrafts = "Borrador";
   static String myFavorites = "Favoritos";
   static String myGroups = "Equipos";
   static String myEnrolls = "Unnes";
