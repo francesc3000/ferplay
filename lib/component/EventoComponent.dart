@@ -56,57 +56,64 @@ class _EventoComponent extends State<EventoComponent> {
                           .copyWith(color: Colors.white))),
             ],
           ),
-          body: new Form(
-              child: new Column(children: <Widget>[
-            new DropdownButton<String>(
-                value: _hobby,
-                hint: const Text("FerPlay"),
-                onChanged: (String newValue) {
-                  setState(() {
-                    _hobby = newValue;
-                  });
-                },
-                items:
-                    <String>['Padel', 'Futbol', 'Basquet', 'Tenis'].map((String value) {
-                  return new DropdownMenuItem<String>(
-                    value: value,
-                    child: new Text(value),
-                  );
-                }).toList(),
-            ),
-            const SizedBox(
-              height: 24.0,
-            ),
-            new TextField(
-              controller: _controllerName,
-              decoration: new InputDecoration(
-                hintText: 'Nombre del evento',
-              )),
-            new TextField(
-              controller: _controllerDescription,
-              decoration: new InputDecoration(
-                hintText: 'Descripción',
-              ),
-              maxLines: 6,
-            ),
-            new _DateTimePicker(
-              labelText: "Fecha",
-              selectedDate: _fromDate,
-              selectedTime: _fromTime,
-              selectDate: (DateTime date) {
-                setState(() {
-                  _fromDate = date;
-                });
-              },
-              selectTime: (TimeOfDay time) {
-                setState(() {
-                  _fromTime = time;
-                });
-              },
-            ),getMap(context),
-          ]))),
+          body: new ListView.builder(
+            itemCount: 1,
+            itemBuilder: (BuildContext context, int index) {
+              return new Form(
+                  child: new Column(children: <Widget>[
+                    new DropdownButton<String>(
+                      value: _hobby,
+                      hint: const Text("FerPlay"),
+                      onChanged: (String newValue) {
+                        setState(() {
+                          _hobby = newValue;
+                        });
+                      },
+                      items:
+                      <String>['Padel', 'Futbol', 'Basquet', 'Tenis'].map((String value) {
+                        return new DropdownMenuItem<String>(
+                          value: value,
+                          child: new Text(value),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(
+                      height: 24.0,
+                    ),
+                    new TextField(
+                        controller: _controllerName,
+                        decoration: new InputDecoration(
+                          hintText: 'Nombre del evento',
+                        )),
+                    new TextField(
+                      controller: _controllerDescription,
+                      decoration: new InputDecoration(
+                        hintText: 'Descripción',
+                      ),
+                      maxLines: 6,
+                    ),
+                    new _DateTimePicker(
+                      labelText: "Fecha",
+                      selectedDate: _fromDate,
+                      selectedTime: _fromTime,
+                      selectDate: (DateTime date) {
+                        setState(() {
+                          _fromDate = date;
+                        });
+                      },
+                      selectTime: (TimeOfDay time) {
+                        setState(() {
+                          _fromTime = time;
+                        });
+                      },
+                    ),getMap(context),
+                  ]));
+            },
+          )
+      ),
     );
   }
+
   Widget getMap(BuildContext context) {
     return new FlutterMap(
       options: new MapOptions(
