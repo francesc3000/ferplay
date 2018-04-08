@@ -14,16 +14,19 @@ class UserDao {
 
   Future<User> getUser(GoogleSignInAccount user) async {
     User userRet = null;
+
+    /*
     try {
-      await Injector.userRepository
-          .child(User.generateKey(email))
-          .onValue
-          .first
-          .then((Event event) {
-        DataSnapshot userSnapshot = event.snapshot;
+      await Injector.userRepository.orderByChild(UserDao.email)
+          .equalTo(user.email)
+          .reference()
+          .once()
+          .then(
+          (DataSnapshot snapshot) {
+        DataSnapshot userSnapshot = snapshot;
         if (userSnapshot == null || userSnapshot.value == null) {
           userRet = new User(user.email, user.displayName, user.photoUrl);
-          Injector.userRepository.child(userRet.key).set(userRet.toJson());
+          _setUser(userRet);
         } else {
           String email = userSnapshot.value[UserDao.email];
           String fullname = userSnapshot.value[UserDao.fullname];
@@ -37,12 +40,41 @@ class UserDao {
     } catch (e) {
       print(e.toString());
     }
+    */
+
+    try {
+      Injector.userRepository.orderByChild(UserDao.email)
+          .equalTo(user.email)
+          .onChildAdded
+          .listen((Event event){
+            DataSnapshot userSnapshot = event.snapshot;
+            String email = userSnapshot.value[UserDao.email];
+            String fullname = userSnapshot.value[UserDao.fullname];
+            String photoUrl = userSnapshot.value[UserDao.photoUrl];
+            userRet = new User(userSnapshot.key,email, fullname, photoUrl);
+            //_loadFavorites(userRet.key);
+          }, onError: (Object o) {
+        print(o.toString());
+      });
+    } catch (e) {
+      print(e.toString());
+    }
+
+    if (userRet == null) {
+      userRet = new User(null,user.email, user.displayName, user.photoUrl);
+      _setUser(userRet);
+    }
+
     return userRet;
   }
-  _loadFavorites(String userId){
-    Map<String,bool> favoritesIdList = new HashMap();
-    Injector.favoriteRepository
-            .child(userId).onValue.first.then((Event event){
+
+  void _setUser(User user){
+    Injector.userRepository.push().set(user.toJson());
+  }
+
+  _loadFavorites(String userId) {
+    Map<String, bool> favoritesIdList = new HashMap();
+    Injector.favoriteRepository.child(userId).onValue.first.then((Event event) {
       favoritesIdList.addAll(event.snapshot.value[UserDao.favoritesEventos]);
     });
 

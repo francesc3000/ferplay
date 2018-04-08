@@ -24,31 +24,25 @@ class Injector {
 
   Injector._internal();
 
-  static DatabaseReference get eventoRepository {
+  static DatabaseReference get _rootRepository{
     switch(_flavor) {
       case Flavor.DEV:
-        return FirebaseDatabase.instance.reference().child("DEV").child(Strings.eventosBD);
+        return FirebaseDatabase.instance.reference().child("DEV").reference();
       default: // Flavor.PRO:
-        return FirebaseDatabase.instance.reference().child("PRO").child(Strings.eventosBD);
+        return FirebaseDatabase.instance.reference().child("PRO").reference();
     }
+  }
+
+  static DatabaseReference get eventoRepository {
+    return _rootRepository.child(Strings.eventosBD).reference();
   }
 
   static DatabaseReference get userRepository {
-    switch(_flavor) {
-      case Flavor.DEV:
-        return FirebaseDatabase.instance.reference().child("DEV").child(Strings.usersBD);
-      default: // Flavor.PRO:
-        return FirebaseDatabase.instance.reference().child("PRO").child(Strings.usersBD);
-    }
+    return _rootRepository.child(Strings.usersBD).reference();
   }
 
   static DatabaseReference get favoriteRepository {
-    switch(_flavor) {
-      case Flavor.DEV:
-        return FirebaseDatabase.instance.reference().child("DEV").child(Strings.favoritesBD);
-      default: // Flavor.PRO:
-        return FirebaseDatabase.instance.reference().child("PRO").child(Strings.favoritesBD);
-    }
+    return _rootRepository.child(Strings.favoritesBD).reference();
   }
 
   static User get currentUser => _currentUser;

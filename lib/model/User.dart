@@ -4,8 +4,8 @@ import 'package:ferplay/dao/UserDao.dart';
 
 class User{
 
-  User(String email, String fullname, String photoUrl){
-    this._key = _generateKey(email);
+  User(String key, String email, String fullname, String photoUrl){
+    this._key = key;
     this._email = email;
     this._fullname = fullname;
     this._photoUrl = photoUrl;
@@ -53,20 +53,4 @@ class User{
       UserDao.photoUrl: this.photoUrl
     };
   }
-
-  String _generateKey(String value){
-    return generateKey(value);
-  }
-
-  static String generateKey(String value){
-    String ret = value;
-    ret = ret.replaceAll(".", "");
-    ret = ret.replaceAll("#", "");
-    //ret = ret.replaceAll("$", "");
-    ret = ret.replaceAll("[", "");
-    ret = ret.replaceAll("]", "");
-
-    return ret;
-  }
-
 }
