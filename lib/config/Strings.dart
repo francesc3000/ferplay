@@ -25,7 +25,11 @@ class Strings{
 
   static String get usersBD => "users";
 
-  static String get favoritesBD => "favorites";
+  static String get eventosWhiteListBD => "eventosWhiteList";
+
+  static String get eventosThumbBD => "eventosThumb";
+
+  static String get eventosFavoritesBD => "eventosFavorites";
 
 
 }

@@ -4,8 +4,8 @@ import 'package:ferplay/component/ComponentsInterfaces.dart';
 import 'package:ferplay/dao/EventoDao.dart';
 import 'package:ferplay/dao/UserDao.dart';
 import 'package:ferplay/model/Evento.dart';
+import 'package:ferplay/model/EventoThumb.dart';
 import 'package:ferplay/model/Injector.dart';
-import 'package:ferplay/model/Mapper.dart';
 import 'package:ferplay/model/User.dart';
 import 'package:ferplay/presenter/Presenters.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -26,16 +26,16 @@ class HomePresenterImpl implements HomePresenter {
   HomePresenterImpl(this._view);
 
   @override
-  void addFavoriteEvento(String eventoId) {
-    _addFavoriteEvento(eventoId);
+  void addFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _addFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
   @override
-  void removeFavoriteEvento(String eventoId) {
-    _removeFavoriteEvento(eventoId);
+  void removeFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _removeFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
-  Future<User> _getUserFromBD(GoogleSignInAccount user) async {
+  Future<User> _loadUserFromBD(GoogleSignInAccount user) async {
     if(user!=null)
       return await _userDao.getUser(user);
 
@@ -44,7 +44,7 @@ class HomePresenterImpl implements HomePresenter {
 
   @override
   Query getHomeListQuery() {
-    return _eventoDao.getDB();
+    return _eventoDao.getHomeList();
   }
 
   @override
@@ -53,7 +53,7 @@ class HomePresenterImpl implements HomePresenter {
     GoogleSignInAccount user = _googleSignIn.currentUser;
     if (user == null) user = await _googleSignIn.signInSilently();
 
-    Injector.currentUser = await _getUserFromBD(user);
+    await _loadUserFromBD(user);
 
     _view.onInitLoggedInComplete();
   }
@@ -74,7 +74,7 @@ class HomePresenterImpl implements HomePresenter {
       );
     }
     if(user!=null)
-      Injector.currentUser = await _getUserFromBD(user);
+      await _loadUserFromBD(user);
   }
 
   @override
@@ -98,7 +98,7 @@ class EventoPresenterImpl implements EventoPresenter{
 
   @override
   void save(String hobby, String name, String description, DateTime _fromDate, TimeOfDay _fromTime) {
-    Evento _evento = new Evento(null,Injector.currentUser.key, hobby,name,description);
+    Evento _evento = new Evento(null, hobby,name,description);
 
     _evento.fromDate = _fromDate;
     _evento.fromTime = _fromTime;
@@ -107,22 +107,17 @@ class EventoPresenterImpl implements EventoPresenter{
   }
 
   @override
-  void addFavoriteEvento(String eventoId) {
-    _addFavoriteEvento(eventoId);
+  void addFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _addFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
   @override
-  void removeFavoriteEvento(String eventoId) {
-    _removeFavoriteEvento(eventoId);
+  void removeFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _removeFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
   bool _saveEvento(Evento evento){
-    if(evento.key == null)
-      _eventoDao.getDB().push().set(evento.toJson());
-    else
-      _eventoDao.getDB().child(evento.key).set(evento.toJson());
-
-    return true;
+    return _eventoDao.saveEvento(evento);
   }
 }
 
@@ -133,13 +128,13 @@ class DashboardPresenterImpl implements DashboardPresenter{
   DashboardPresenterImpl(this.dashboardView);
 
   @override
-  void addFavoriteEvento(String eventoId) {
-    _addFavoriteEvento(eventoId);
+  void addFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _addFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
   @override
-  void removeFavoriteEvento(String eventoId) {
-    _removeFavoriteEvento(eventoId);
+  void removeFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+    _removeFavoriteEvento(eventoId, hobby, name, fromDate, toDate);
   }
 
   @override
@@ -166,21 +161,37 @@ class DashboardPresenterImpl implements DashboardPresenter{
   }
 }
 
-void _addFavoriteEvento(String eventoId) {
-  var favoritesEventos = Injector.currentUser.favoritesEventos;
-  if(!favoritesEventos.putIfAbsent(eventoId, ()=>true))
-    favoritesEventos.update(eventoId, (bool)=>true);
+void _addFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+  EventoThumb eventoThumb = new EventoThumb(eventoId, hobby, name);
+  eventoThumb.fromDate = new DateTime
+      .fromMillisecondsSinceEpoch(int.parse(fromDate));
+  eventoThumb.toDate = new DateTime
+      .fromMillisecondsSinceEpoch(int.parse(toDate));
 
-  Injector.favoriteRepository.child(Injector.currentUser.key)
-      .child(UserDao.favoritesEventos).set(favoritesEventos);
+  var favoritesEventos = Injector.currentUser.favoritesEventos;
+  if(!favoritesEventos.contains(eventoId)) {
+    favoritesEventos.add(eventoId);
+
+    //TODO: Poner el guardado en DAO
+    Injector.favoriteRepository.child(Injector.currentUser.key)
+        .child(eventoThumb.key).set(eventoThumb.toJson());
+  }
 }
 
-void _removeFavoriteEvento(String eventoId) {
-  var favoritesEventos = Injector.currentUser.favoritesEventos;
-  if(!favoritesEventos.putIfAbsent(eventoId, ()=>true))
-    favoritesEventos.update(eventoId, (bool)=>true);
+void _removeFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate) {
+  EventoThumb eventoThumb = new EventoThumb(eventoId, hobby, name);
+  eventoThumb.fromDate = new DateTime
+      .fromMillisecondsSinceEpoch(int.parse(fromDate));
+  eventoThumb.toDate = new DateTime
+      .fromMillisecondsSinceEpoch(int.parse(toDate));
 
-  Injector.favoriteRepository.child(Injector.currentUser.key)
-      .child(UserDao.favoritesEventos).set(favoritesEventos);
+  var favoritesEventos = Injector.currentUser.favoritesEventos;
+  if(favoritesEventos.contains(eventoId)) {
+    favoritesEventos.remove(eventoId);
+
+    //TODO: Poner el guardado en DAO
+    Injector.favoriteRepository.child(Injector.currentUser.key)
+        .set(favoritesEventos);
+  }
 }
 

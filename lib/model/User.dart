@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:ferplay/dao/UserDao.dart';
+import 'package:ferplay/model/EventoThumb.dart';
 
 class User{
 
@@ -9,14 +10,14 @@ class User{
     this._email = email;
     this._fullname = fullname;
     this._photoUrl = photoUrl;
-    this._favoritesEventos = new HashMap();
+    this._favoritesEventos = new List<String>();
   }
 
   String _key;
   String _email;
   String _fullname;
   String _photoUrl;
-  Map<String,bool> _favoritesEventos;
+  List _favoritesEventos;
 
   String get key => _key;
 
@@ -40,9 +41,9 @@ class User{
   }
 
 
-  Map<String, bool> get favoritesEventos => _favoritesEventos;
+  List<String> get favoritesEventos => _favoritesEventos;
 
-  set favoritesEventos(Map<String, bool> value) {
+  set favoritesEventos(List<String> value) {
     _favoritesEventos.addAll(value);
   }
 
@@ -52,5 +53,9 @@ class User{
       UserDao.fullname: this.fullname,
       UserDao.photoUrl: this.photoUrl
     };
+  }
+
+  bool isEventoFavorite(String eventoId) {
+    return favoritesEventos.contains(eventoId);
   }
 }

@@ -5,8 +5,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
 abstract class EventoAnimatedListPresenter{
-  void addFavoriteEvento(String eventoId);
-  void removeFavoriteEvento(String eventoId);
+  void addFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate);
+  void removeFavoriteEvento(String eventoId,String hobby,String name,String fromDate,String toDate);
 }
 
 abstract class HomePresenter implements EventoAnimatedListPresenter{

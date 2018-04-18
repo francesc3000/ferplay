@@ -5,22 +5,29 @@ dependencies:
   flutter:
     sdk: flutter
 
-  image_picker: 0.1.1
-  google_sign_in: 0.3.1
-  firebase_analytics: 0.0.4
-  firebase_auth: 0.2.0
-  firebase_database: 0.0.12
-  firebase_storage: 0.0.5
-  intl: 0.15.2
-  flutter_webview_plugin: "^0.1.2"
-  flutter_facebook_login: "^1.0.3"
-  # flutter_facebook_connect: "0.0.4"
+  #image_picker: 0.1.1
+  image_picker: "^0.4.1"
+  #google_sign_in: 0.3.1
+  google_sign_in: "^3.0.0"
+  #firebase_analytics: 0.0.4
+  firebase_analytics: "^0.3.0"
+  #firebase_auth: 0.2.0
+  firebase_auth: "^0.5.3"
+  #firebase_database: 0.0.12
+  firebase_database: "^0.4.2"
+  #firebase_storage: 0.0.5
+  firebase_storage: "^0.2.1"
+  #intl: 0.15.2
+  intl: "^0.15.6"
+  flutter_webview_plugin: "^0.1.5"
+  flutter_facebook_login: "^1.1.1"
+  # flutter_facebook_connect: "0.0.4+1"
   # map_view: "^0.0.10"
   flutter_map: "^0.0.2+4"
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.0
+  cupertino_icons: ^0.1.2
 
 dev_dependencies:
   flutter_test:

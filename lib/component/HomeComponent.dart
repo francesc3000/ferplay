@@ -84,12 +84,57 @@ class _HomeScreenState extends State<HomeScreen> implements HomeView{
   Widget build(BuildContext context) {
     Widget widget;
 
+    List<BottomNavigationBarItem> items = new List();
+    BottomNavigationBarItem home =
+      new BottomNavigationBarItem(icon: const Icon(Icons.home, color: Colors.black), title: const Text(""));
+    BottomNavigationBarItem favorite =
+    new BottomNavigationBarItem(icon: const Icon(Icons.favorite, color: Colors.black), title: const Text(""));
+    BottomNavigationBarItem add =
+    new BottomNavigationBarItem(icon: const Icon(Icons.add_circle, color: Colors.black), title: const Text(""));
+    BottomNavigationBarItem messenger =
+    new BottomNavigationBarItem(icon: const Icon(Icons.message, color: Colors.black), title: const Text(""));
+    BottomNavigationBarItem account =
+    new BottomNavigationBarItem(icon: const Icon(Icons.account_circle, color: Colors.black), title: const Text(""));
+
+    items.add(home);
+    items.add(favorite);
+    items.add(add);
+    items.add(messenger);
+    items.add(account);
+
+    BottomNavigationBar bottomNavigationBar = new BottomNavigationBar(
+      items: items,
+      type: BottomNavigationBarType.shifting,
+      currentIndex: 2,
+      onTap: (int index){
+        switch(index){
+          case 0:
+            break;
+          case 1:
+            break;
+          case 2:
+          case 3:
+          case 4:
+            print(index);
+        }
+      },
+    );
+
     if(_IsSignInSilently) {
-      widget = new Center(
-          child: new Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 16.0),
-              child: new CircularProgressIndicator()
-          )
+      widget = new Scaffold(
+          appBar: new AppBar(
+            title: new Text(Strings.projectTitle),
+            elevation:
+            Theme
+                .of(context)
+                .platform == TargetPlatform.iOS ? 0.0 : 4.0,
+          ),
+          body: new Center(
+            child: new Padding(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0),
+                child: new CircularProgressIndicator()
+            )
+        ),
       );
     }else {
       widget = new Scaffold(
@@ -101,9 +146,28 @@ class _HomeScreenState extends State<HomeScreen> implements HomeView{
                 .platform == TargetPlatform.iOS ? 0.0 : 4.0,
           ),
           drawer: _drawerList, //new DrawerDemo(),
-          body: /*new EventoAnimatedList(query: _homePresenter.getHomeListQuery()
-              , presenter: _homePresenter));*/
-    new EventoAnimatedList(presenter: _homePresenter));
+          bottomNavigationBar: bottomNavigationBar,
+          body: new FirebaseAnimatedList(
+            query: _homePresenter.getHomeListQuery(),
+            padding: new EdgeInsets.all(8.0),
+            reverse: false,
+
+            itemBuilder: (BuildContext context, DataSnapshot snapshot,
+                Animation<double> animation, int index) {
+              return new Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  new ListTile(
+                    leading: const Icon(Icons.event),
+                    title: new Text(snapshot.value["hobby"])
+                  ),
+                  new IconCardButton(snapshot.key,snapshot.value["hobby"],
+                  snapshot.value["name"],snapshot.value["fromDate"],snapshot.value["toDate"])
+                ],
+              );
+            },
+          ),
+      );
     }
 
     return widget;
@@ -114,6 +178,60 @@ class _HomeScreenState extends State<HomeScreen> implements HomeView{
     setState(() {
       _IsSignInSilently = false;
     });
+  }
+}
+
+class IconCardButton extends StatefulWidget{
+  String eventoId;
+  String hobby;
+  String name;
+  String fromDate;
+  String toDate;
+  IconCardButton(this.eventoId,this.hobby,this.name,this.fromDate,this.toDate);
+
+  @override
+  _IconCardButton createState() => new _IconCardButton(this.eventoId,this.hobby,this.name,this.fromDate,this.toDate);
+}
+
+class _IconCardButton extends State<IconCardButton>{
+
+  String eventoId;
+  String hobby;
+  String name;
+  String fromDate;
+  String toDate;
+  Icon _favoriteIcon;
+
+  _IconCardButton(this.eventoId,this.hobby,this.name,this.fromDate,this.toDate);
+
+  @override
+  Widget build(BuildContext context) {
+    if(Injector.currentUser!=null&&Injector.currentUser.isEventoFavorite(eventoId))
+      _favoriteIcon = const Icon(Icons.favorite);
+    else
+      _favoriteIcon = const Icon(Icons.favorite_border);
+
+    return new Container(
+      alignment: Alignment.bottomRight,
+      child: new IconButton(icon: _favoriteIcon,
+          onPressed: (){
+        if(Injector.currentUser==null)
+          _homePresenter.ensureLoggedIn();
+
+        if(Injector.currentUser!=null) {
+          setState(() {
+            if (_favoriteIcon.icon == Icons.favorite_border)
+              _homePresenter.addFavoriteEvento(
+                  this.eventoId, this.hobby, this.name, this.fromDate,
+                  this.toDate);
+            else
+              _homePresenter.removeFavoriteEvento(
+                  this.eventoId, this.hobby, this.name, this.fromDate,
+                  this.toDate);
+          });
+        }
+      }),
+    );
   }
 }
 

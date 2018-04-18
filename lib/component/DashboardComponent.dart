@@ -178,10 +178,11 @@ class ChoiceCard extends StatelessWidget {
     final TextStyle textStyle = Theme.of(context).textTheme.display1;
 
     switch(tabController.index) {
+      /*
       case 2:
-        return new EventoAnimatedList(presenter: _dashboardPresenter);
+        return new Containter();//EventoAnimatedList(presenter: _dashboardPresenter);
         break;
-
+*/
       default:
         return new Column(
           mainAxisSize: MainAxisSize.min,

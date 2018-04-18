@@ -144,7 +144,7 @@ import 'package:ferplay/component/ComponentsInterfaces.dart';
 import 'package:ferplay/presenter/Presenters.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
-
+/*
 class EventoAnimatedList extends StatefulWidget {
   final EventoAnimatedListPresenter presenter;
 
@@ -290,3 +290,4 @@ class _CardItem extends State<CardItem>{
     return icon;
   }
 }
+*/

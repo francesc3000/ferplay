@@ -12,6 +12,18 @@ void main() {
   runApp(new HomeComponent());
 }
 
+/*
+new StreamBuilder<Event>(
+    stream: FirebaseDatabase.instance.reference().child('schedules').onValue,
+    builder: (BuildContext context, AsyncSnapshot<Event> event) {
+      if (!event.hasData)
+        return new Center(child: new Text('Loading...'));
+      Map<String, Map> schedules = event.data.snapshot.value;
+      // Do something with the list of schedules
+    },
+  ),
+ */
+
 class Demo extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
